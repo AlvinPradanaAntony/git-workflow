@@ -2,7 +2,7 @@
 
 ## Inspect before choosing a version
 
-Identify the supported mobile/desktop application and its actual release boundaries. Verify target OS/architectures, entrypoints and packaging configuration. Read project instructions, manifests, native platform version fields, lockfiles, VERSION files, app-info displays, changelog, reachable tags, GitHub releases and relevant Actions. Read locally or through GitHub tools; never send repository code or diffs to Context7. Public documentation queries must be generic.
+Read release-targets.md. Identify the selected non-web product and its actual release boundaries. Verify entrypoints or package APIs, version authority and distribution policy; OS/architectures and native packaging apply only when relevant. Read project instructions, manifests, native platform version fields, lockfiles, VERSION files, app-info displays, changelog, reachable tags, GitHub releases and relevant Actions. Read locally or through GitHub tools; never send repository code or diffs to Context7. Public documentation queries must be generic.
 
 | Project | Candidate sources to verify, not a blanket edit list |
 | --- | --- |
@@ -12,11 +12,16 @@ Identify the supported mobile/desktop application and its actual release boundar
 | Electron desktop | Selected package.json version, matching lockfile package version where required, main entrypoint, app-info source and installer/portable packaging config. |
 | Rust desktop / Tauri | Cargo.toml package/workspace version, Cargo.lock, desktop entrypoint, Tauri config if independent, and bundle targets; follow actual ownership. |
 | .NET desktop | Central props/project Version, AssemblyVersion/FileVersion policies and installer metadata. |
-| Other mobile / desktop tooling | Verified app version/VERSION file and packaging authority, such as a Python desktop entrypoint with an executable-bundling configuration. |
+| Go CLI/tool/service | VERSION or the established embedded version authority, Go entrypoints, build flags and ldflags/version injection; go.mod go/toolchain directives are toolchain versions, not product versions. |
+| Python CLI/script/library | pyproject.toml/project version, setup.cfg/setup.py or established __version__/VERSION; verified package/bundler entrypoints and lockfile relationships. |
+| JS/TS CLI or library | Selected package.json version, package exports/bin and appropriate lockfile root metadata; package.json alone does not imply a web product. |
+| Rust CLI/library/service | Cargo package/workspace version and dependent lockfile metadata; bin/lib entrypoints and actual target policy. |
+| Service/firmware/plugin/other non-web product | Established manifest/VERSION/embedded authority and output configuration; inspect release boundaries and project conventions rather than imposing an app schema. |
+| Script/source-only product | Existing VERSION/header/tag-based version policy; no native build number or compiled executable is universally required. |
 
-In a monorepo, select the mobile/desktop app and distinguish unified app versions from independently released products. Ask for a component when scope is ambiguous; update only the app and its proven derived version fields. Follow links between authoritative and derived fields. Do not update dependency constraints or arbitrary text matching the old version. Use repo-prescribed package tools for lockfiles; do not run commands that also publish packages or create tags as a hidden version update.
+In a monorepo, select the non-web release component and distinguish unified app versions from independently released products. Ask for a component when scope is ambiguous; update only that product and its proven derived version fields. Follow links between authoritative and derived fields. Do not update dependency constraints or arbitrary text matching the old version. Use repo-prescribed package tools for lockfiles; do not run commands that also publish packages or create tags as a hidden version update.
 
-Compare the current app version, changelog entries and published versions. List mismatches with file/value evidence; offer reconciliation choices instead of choosing the largest value automatically. A manifest already ahead of the latest release may be a prepared version: recommend finishing that version when its intended changes match, rather than bumping it twice. No remote access means remote publication state remains unknown.
+Compare the current product version, changelog entries and published versions. List mismatches with file/value evidence; offer reconciliation choices instead of choosing the largest value automatically. A manifest already ahead of the latest release may be a prepared version: recommend finishing that version when its intended changes match, rather than bumping it twice. No remote access means remote publication state remains unknown.
 
 ## Baseline and evidence
 
@@ -30,7 +35,7 @@ Use SemVer when the repo follows it: incompatible public API/data/config require
 
 Validate prerelease identifiers and numeric ordering. Classify every SemVer suffix, including alpha/beta/rc, as prerelease; do not check only beta/rc as the reference workflow does. Promotion from prerelease to stable needs a deliberate choice. Build metadata does not raise SemVer precedence. Preserve the repo's tag naming scheme; validate tags and ensure uniqueness locally and remotely.
 
-Keep marketing version and platform build counters separate. Inspect prior published versionCode/CFBundleVersion or CI allocation; choose a monotonically valid build number only with evidence. Flutter +N is a build suffix, not automatically the GitHub tag suffix. If CI overrides N with a run number, report that authority instead of incrementing both blindly. Do not reset native counters to 1 on a marketing-version bump. Platform constraints may forbid arbitrary SemVer suffixes; adapt verified marketing/native fields without claiming an invalid native version is publishable.
+When the product has native platform build counters, keep them separate from its marketing version. Do not invent Android/iOS counters for CLI, libraries, scripts or services. Inspect prior published versionCode/CFBundleVersion or CI allocation; choose a monotonically valid build number only with evidence. Flutter +N is a build suffix, not automatically the GitHub tag suffix. If CI overrides N with a run number, report that authority instead of incrementing both blindly. Do not reset native counters to 1 on a marketing-version bump. Platform constraints may forbid arbitrary SemVer suffixes; adapt verified marketing/native fields without claiming an invalid native version is publishable.
 
 ## Update and validation
 

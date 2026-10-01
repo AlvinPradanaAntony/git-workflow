@@ -2,7 +2,7 @@
 
 CLI mandiri untuk memasang satu skill berisi **12 command Git + help**, dengan executable Windows, Linux, dan macOS. Jalankan `git-workflow init` dari proyek mana pun; root Git ditemukan dari folder terminal, termasuk subfolder dan linked worktree. Pengguna CLI tidak memerlukan Python, Node, atau Go.
 
-Versi distribusi: **2.13.0**. Source: [AlvinPradanaAntony/git-workflow](https://github.com/AlvinPradanaAntony/git-workflow).
+Versi distribusi: **2.13.1**. Source: [AlvinPradanaAntony/git-workflow](https://github.com/AlvinPradanaAntony/git-workflow).
 
 ## Pasang CLI sekali
 
@@ -19,7 +19,7 @@ git-workflow --version
 
 Bootstrap mengambil executable sesuai CPU dan `SHA256SUMS` dari repo distribusi, memverifikasinya, lalu memasang ke `%LOCALAPPDATA%\Programs\GitWorkflow\bin`. PATH pengguna dan sesi PowerShell aktif diperbarui, tanpa administrator.
 
-Untuk versi tertentu: `.\install.ps1 -Version v2.13.0`. Untuk pemasangan offline, simpan executable yang cocok dan `SHA256SUMS` di folder yang sama dengan `install.ps1`, atau gunakan `-SourceDirectory PATH`. `-BinDirectory PATH`, `-NoPath`, dan `-Replace` tersedia.
+Untuk versi tertentu: `.\install.ps1 -Version v2.13.1`. Untuk pemasangan offline, simpan executable yang cocok dan `SHA256SUMS` di folder yang sama dengan `install.ps1`, atau gunakan `-SourceDirectory PATH`. `-BinDirectory PATH`, `-NoPath`, dan `-Replace` tersedia.
 
 ### Linux/macOS
 
@@ -35,7 +35,7 @@ Bootstrap memasang executable ke `~/.local/bin` dan menambahkan PATH pada profil
 git-workflow --version
 ```
 
-Untuk versi tertentu: `sh install.sh --version v2.13.0`. Pemasangan offline memakai executable yang cocok dan `SHA256SUMS` di sebelah script, atau `--source-dir PATH`. `--bin-dir PATH`, `--no-path`, dan `--replace` tersedia.
+Untuk versi tertentu: `sh install.sh --version v2.13.1`. Pemasangan offline memakai executable yang cocok dan `SHA256SUMS` di sebelah script, atau `--source-dir PATH`. `--bin-dir PATH`, `--no-path`, dan `--replace` tersedia.
 
 Kedua bootstrap memakai repo ini sebagai default. `--repo OWNER/REPO` / `-Repo OWNER/REPO` atau `GIT_WORKFLOW_REPO` dapat mengganti sumber unduhan. Bootstrap memasang **CLI**; lanjutkan dengan `init` untuk memasang **skill**.
 
@@ -111,6 +111,8 @@ $git-workflow gitrelease publish
 
 Di Antigravity gunakan `/git-workflow` sebagai awalan. `git-workflow init` di terminal memasang skill; `gitrelease init` melalui agent menyiapkan sistem rilis aplikasi.
 
+gitrelease mendukung semua proyek selain website/aplikasi web berbasis browser, termasuk CLI, library, skrip, tooling, service serta mobile/desktop. Agent membaca codebase untuk memilih build, target dan format distribusi; tidak setiap proyek memerlukan executable atau kompilasi. Pertanyaan hanya diajukan untuk keputusan penting yang belum jelas.
+
 Nomor command tetap: `1 gitstatus`, `2 commitpln`, `3 commitmsg`, `4 branchname`, `5 prdesc`, `6 gitundo`, `7 gitreset`, `8 gitmergecancel`, `9 gitamend`, `10 gitpushamend`, `11 gitpush`, `12 gitrelease`. Help ringkas, `--detailed`, `--cmd`, dan pemilihan nomor/nama tetap tersedia.
 
 ## Aset unduhan
@@ -132,9 +134,9 @@ Push tag `vX.Y.Z` yang sesuai dengan `VERSION` dan changelog memicu publikasi se
 Untuk publikasi pertama setelah kode berada di `main`:
 
 ```bash
-git tag -a v2.13.0 -m "Release v2.13.0"
+git tag -a v2.13.1 -m "Release v2.13.1"
 git push origin main
-git push origin refs/tags/v2.13.0
+git push origin refs/tags/v2.13.1
 ```
 
 Untuk versi berikutnya, perbarui `VERSION` dan `CHANGELOG.md`, regenerasi paket, lalu commit sebelum membuat tag. Run manual dari branch hanya membangun; run manual dari tag yang cocok juga mempublikasikan release.

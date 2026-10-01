@@ -158,7 +158,8 @@ class DistributionTests(unittest.TestCase):
 
     def test_release_notes_are_scoped_and_tag_must_match(self):
         notes = release.notes()
-        self.assertIn("2.13.0", notes)
+        self.assertIn(release.version(), notes)
+        self.assertNotIn("## [2.13.0]", notes)
         self.assertNotIn("## [2.12.3]", notes)
         self.assertIn("install_git_workflow.py", notes)
         env = dict(self.env, RELEASE_TAG="v99.0.0")
@@ -213,10 +214,10 @@ class DistributionTests(unittest.TestCase):
                     return "[[]]"
                 if args[0] == "api":
                     is_draft = not any(call[:2] == ("release", "edit") for call in calls)
-                    return json.dumps({"tag_name": "v2.13.0", "draft": is_draft,
+                    return json.dumps({"tag_name": "v" + release.version(), "draft": is_draft,
                                        "assets": uploaded[:-1] if incomplete else uploaded})
                 return ""
-            with patch.dict(os.environ, RELEASE_TAG="v2.13.0", RELEASE_REPO="example/fixture"), \
+            with patch.dict(os.environ, RELEASE_TAG="v" + release.version(), RELEASE_REPO="example/fixture"), \
                     patch.object(sys, "argv", ["release.py", "publish", "--dist", str(dist)]), \
                     patch.object(release, "check_dist", return_value=names), \
                     patch.object(release, "gh", side_effect=fake_gh):
@@ -230,7 +231,7 @@ class DistributionTests(unittest.TestCase):
             create = next(call for call in calls if call[:2] == ("release", "create"))
             self.assertIn("--draft", create)
             if not incomplete:
-                self.assertIn("https://github.com/example/fixture/releases/download/v2.13.0/", (dist / "release-notes.md").read_text())
+                self.assertIn(f"https://github.com/example/fixture/releases/download/v{release.version()}/", (dist / "release-notes.md").read_text())
 
 
 if __name__ == "__main__":

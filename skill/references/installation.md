@@ -1,6 +1,6 @@
 # Git Workflow installation
 
-## Native CLI (2.13.0)
+## Native CLI (2.13.1)
 Use the standalone `git-workflow` executable on PATH for Windows, Linux or macOS, amd64 and arm64. It embeds the skill, needs no Python/Node/Go runtime, and uses an existing Git installation for project discovery. The distribution source is https://github.com/AlvinPradanaAntony/git-workflow. Bootstrap install.ps1/install.sh installs the CLI once in the current user's bin directory; it does not itself install the skill or change a repository. Use adjacent downloaded binaries with SHA256SUMS, --source-dir/-SourceDirectory, or the default distribution repository. --repo/-Repo overrides that repository. Verify release availability before recommending a download URL; a committed workflow does not itself mean a public release exists.
 
 | Terminal command | Behavior |

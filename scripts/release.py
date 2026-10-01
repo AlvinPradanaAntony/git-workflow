@@ -64,7 +64,8 @@ def notes():
         name = f"git-workflow-{system}-{arch}" + (".exe" if system == "windows" else "")
         label = {"darwin": "macOS", "windows": "Windows", "linux": "Linux"}[system]
         rows.append(f"| {label} {arch} | [{name}]({name}) | CLI portable, tanpa runtime tambahan |")
-    rows += ["| Python 3.10+ | [install_git_workflow.py](install_git_workflow.py) | Installer skill; preview default, tambahkan `--apply` |",
+    rows += [f"| Source | [git-workflow-source-v{value}.tar.gz](git-workflow-source-v{value}.tar.gz) | Source pada commit rilis |",
+             "| Python 3.10+ | [install_git_workflow.py](install_git_workflow.py) | Installer skill; preview default, tambahkan `--apply` |",
              "| Bootstrap | [install.sh](install.sh) / [install.ps1](install.ps1) | Pasang CLI ke PATH pengguna |",
              "| Checksum | [SHA256SUMS](SHA256SUMS) | SHA-256 seluruh aset unduhan |"]
     return (f"## 📋 Apa yang Baru di v{value}?\n\n" + body +

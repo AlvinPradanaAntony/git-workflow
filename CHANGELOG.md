@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.1] - 2026-10-01
+
+### Fixed
+- Memperluas gitrelease ke semua proyek selain website/aplikasi web berbasis browser, termasuk CLI, tooling, installer, library, skrip dan service.
+- Menyesuaikan build, target, paket/aset dan distribusi source dengan codebase; tidak lagi mewajibkan GUI, compiler atau paket aplikasi untuk semua proyek.
+- Menyelaraskan aturan skill, help serta payload CLI Go dan installer Python; keputusan penting yang belum jelas ditanyakan sebelum tindakan terkait.
+
 ## [2.13.0] - 2026-10-01
 
 ### Added

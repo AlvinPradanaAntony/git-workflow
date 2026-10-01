@@ -42,7 +42,7 @@ Git Workflow menyediakan 12 command Git. Help hanya menampilkan panduan; tidak m
 | 9 | `gitamend` | Amend staged changes; pesan tetap, tanpa push. | `--no-edit` (selalu default). |
 | 10 | `gitpushamend` | Amend no-edit lalu push ke target terverifikasi. | `--remote` NAME; `--branch` NAME; `--no-edit` (default). |
 | 11 | `gitpush` | Push commit yang sudah ada. | `--remote` NAME; `--branch` NAME. |
-| 12 | `gitrelease` | Versioning/release app mobile/desktop dengan aset unduhan. | Aksi: init/prepare/publish/delete; `--version` VERSION atau `--bump` patch/minor/major; `--from` REF; `--component` PATH; `--build-number` N; `--remote` NAME; `--branch` NAME; `--tag` NAME; `--route` auto/workflow/direct (auto); `--workflow` PATH; `--draft`; `--assets` PATH... (direct); `--replace-existing` (publish); `--delete-scope` release/tag/both (both, khusus delete). |
+| 12 | `gitrelease` | Versioning/release semua proyek selain web; build/aset mengikuti codebase. | Aksi: init/prepare/publish/delete; `--version` VERSION atau `--bump` patch/minor/major; `--from` REF; `--component` PATH; `--build-number` N; `--remote` NAME; `--branch` NAME; `--tag` NAME; `--route` auto/workflow/direct (auto); `--workflow` PATH; `--draft`; `--assets` PATH... (direct); `--replace-existing` (publish); `--delete-scope` release/tag/both (both, khusus delete). |
 
 **Opsi pesan bersama — commitpln dan commitmsg:**
 
@@ -224,7 +224,7 @@ Satu skill menyediakan 12 command Git. `help` menampilkan panduan tanpa menjalan
 
 ## 12. gitrelease
 
-**Deskripsi:** Menyiapkan versi/changelog dan menerbitkan GitHub Release untuk aplikasi mobile/desktop dengan aset unduhan. Platform, format paket dan keputusan mengikuti kondisi proyek. Tanpa aksi, hanya menampilkan penggunaan.
+**Deskripsi:** Menyiapkan versi/changelog dan menerbitkan GitHub Release untuk semua jenis proyek selain website/aplikasi web berbasis browser, termasuk CLI, library, tooling, skrip, service, mobile dan desktop. Build, format paket/aset atau distribusi source mengikuti codebase; agent bertanya jika keputusan penting belum jelas. Tanpa aksi, hanya menampilkan penggunaan.
 
 **Aksi:**
 
@@ -232,7 +232,7 @@ Satu skill menyediakan 12 command Git. `help` menampilkan panduan tanpa menjalan
 | --- | --- |
 | `init` | Validasi/inisialisasi versi dan changelog; buat/lengkapi packaging, workflow build/release dan helper lokal untuk target yang dipilih. |
 | `prepare` | Periksa perubahan kode, tentukan versi dari bukti, cek kesiapan pipeline lalu perbarui metadata/changelog lokal. Tanyakan hanya keputusan penting yang belum jelas; tidak bump ulang persiapan yang sama. |
-| `publish` | Publikasikan versi yang sudah di-commit melalui workflow atau langsung, dengan aset aplikasi yang terverifikasi. |
+| `publish` | Publikasikan versi yang sudah di-commit melalui workflow atau langsung, dengan keluaran/distribusi proyek yang terverifikasi. |
 | `delete` | Hapus release/tag yang disebut secara eksplisit, setelah preservasi dan persetujuan cakupan yang diperlukan. Tidak membuat release pengganti. |
 
 **Parameter versi dan cakupan:**
@@ -252,10 +252,10 @@ Satu skill menyediakan 12 command Git. `help` menampilkan panduan tanpa menjalan
 | `--remote` | Nama remote; opsional | Pilih remote yang diverifikasi berdasarkan konteks repo. |
 | `--branch` | Nama branch; opsional | Pilih branch publikasi yang terverifikasi. |
 | `--tag` | Nama tag | Pilih tag yang konsisten dengan versi/prefix repo. Wajib untuk delete. |
-| `--route` | `auto`, `workflow`, `direct`; default `auto` | Auto memilih publisher yang sesuai; workflow memakai CI; direct membutuhkan aset hasil build lokal. |
+| `--route` | `auto`, `workflow`, `direct`; default `auto` | Auto memilih publisher yang sesuai; workflow memakai CI; direct memverifikasi hasil build/paket/source yang sesuai; build yang diperlukan mengikuti perintah proyek. |
 | `--workflow` | Path workflow | Pilih workflow yang sudah ada. Pada init boleh menunjuk file baru di `.github/workflows/`. |
 | `--draft` | Flag | Minta draft GitHub Release; workflow harus mendukung mode ini. |
-| `--assets` | Satu atau beberapa path file | Pilih paket aplikasi terverifikasi untuk route direct; tidak berlaku pada route workflow. |
+| `--assets` | Satu atau beberapa path file | Pilih berkas distribusi proyek terverifikasi untuk route direct; tidak berlaku pada route workflow. |
 | `--replace-existing` | Flag; khusus publish | Ganti tag/release dari versi yang sudah disiapkan melalui prosedur preservasi, pemeriksaan dan persetujuan cakupan. Bukan penghapusan otomatis saat push ditolak. |
 
 **Parameter penghapusan:**

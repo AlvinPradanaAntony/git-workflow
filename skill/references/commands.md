@@ -12,6 +12,6 @@
 - `gitamend`: see `gitamend.md`
 - `gitpushamend`: see `gitpushamend.md`
 - `gitpush`: see `gitpush.md`
-- `gitrelease`: see `gitrelease.md`, `versioning.md`, `changelog.md` and `release-publish.md`; also `release-init.md` for init and `release-manage.md` for delete or --replace-existing; explicit init/prepare/publish/delete; omitted action shows usage
+- `gitrelease`: see `gitrelease.md`, `release-targets.md`, `versioning.md`, `changelog.md` and `release-publish.md`; also `release-init.md` for init and `release-manage.md` for delete or --replace-existing; explicit init/prepare/publish/delete; omitted action shows usage
 
 Also read common.md for Git commands, messages.md for commitmsg/commitpln or a gitrelease preparation commit, and push.md for any branch publication.
