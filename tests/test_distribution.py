@@ -75,7 +75,23 @@ class DistributionTests(unittest.TestCase):
         self.invoke(nested, "--uninstall", "--apply")
         self.assertFalse(manifest.exists())
         self.assertEqual(extra.read_text(), "preserve")
-        self.assertIn(b"Keep this.", agents.read_bytes())
+        self.assertEqual(agents.read_bytes(), b"# Team\r\nKeep this.\r\n")
+
+    def test_existing_empty_agents_file_and_added_user_rule_survive_uninstall(self):
+        target = self.repo()
+        agents = target / "AGENTS.md"
+        agents.write_bytes(b"")
+        self.invoke(target, "--apply")
+        self.invoke(target, "--apply")
+        self.invoke(target, "--uninstall", "--apply")
+        self.assertTrue(agents.is_file())
+        self.assertEqual(agents.read_bytes(), b"")
+        agents.write_bytes(b"Team rule.\n")
+        self.invoke(target, "--apply")
+        with agents.open("ab") as stream:
+            stream.write(b"New user rule.\r\n")
+        self.invoke(target, "--uninstall", "--apply")
+        self.assertEqual(agents.read_bytes(), b"Team rule.\nNew user rule.\r\n")
 
     def test_explicit_project_resolves_git_root_and_requires_git(self):
         target = self.repo()
@@ -180,6 +196,41 @@ class DistributionTests(unittest.TestCase):
         file.unlink()
         with self.assertRaisesRegex(ValueError, "Missing/empty"):
             release.check_dist(dist)
+
+    def test_publish_stays_draft_until_all_expected_assets_are_uploaded(self):
+        dist = self.root / "publication"
+        dist.mkdir()
+        names = release.asset_names() + ["SHA256SUMS"]
+        for name in names:
+            (dist / name).write_bytes(b"fixture asset")
+        uploaded = [{"name": name, "size": (dist / name).stat().st_size, "state": "uploaded"}
+                    for name in names]
+        for incomplete in (False, True):
+            calls = []
+            def fake_gh(*args):
+                calls.append(args)
+                if args[0] == "api" and "?per_page=" in args[1]:
+                    return "[[]]"
+                if args[0] == "api":
+                    is_draft = not any(call[:2] == ("release", "edit") for call in calls)
+                    return json.dumps({"tag_name": "v2.13.0", "draft": is_draft,
+                                       "assets": uploaded[:-1] if incomplete else uploaded})
+                return ""
+            with patch.dict(os.environ, RELEASE_TAG="v2.13.0", RELEASE_REPO="example/fixture"), \
+                    patch.object(sys, "argv", ["release.py", "publish", "--dist", str(dist)]), \
+                    patch.object(release, "check_dist", return_value=names), \
+                    patch.object(release, "gh", side_effect=fake_gh):
+                if incomplete:
+                    with self.assertRaisesRegex(ValueError, "remains a draft"):
+                        release.main()
+                else:
+                    release.main()
+            edits = [call for call in calls if call[:2] == ("release", "edit")]
+            self.assertEqual(len(edits), 0 if incomplete else 1)
+            create = next(call for call in calls if call[:2] == ("release", "create"))
+            self.assertIn("--draft", create)
+            if not incomplete:
+                self.assertIn("https://github.com/example/fixture/releases/download/v2.13.0/", (dist / "release-notes.md").read_text())
 
 
 if __name__ == "__main__":

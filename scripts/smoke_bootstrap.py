@@ -20,6 +20,16 @@ def main():
             for _ in range(2):
                 subprocess.run(cmd, check=True)
                 subprocess.run([str(dest / 'git-workflow.exe'), '--version'], check=True)
+            bad = Path(temp) / 'bad-source'
+            shutil.copytree(ROOT / 'dist', bad)
+            for item in bad.glob('git-workflow-windows-*.exe'):
+                item.write_bytes(b'altered executable')
+            before = hashlib.sha256((dest / 'git-workflow.exe').read_bytes()).hexdigest()
+            bad_cmd = cmd[:]
+            bad_cmd[bad_cmd.index('-SourceDirectory') + 1] = str(bad)
+            result = subprocess.run(bad_cmd, capture_output=True, text=True)
+            assert result.returncode != 0 and 'checksum mismatch' in result.stderr
+            assert hashlib.sha256((dest / 'git-workflow.exe').read_bytes()).hexdigest() == before
         return
     print('Shell bootstrap native test')
     with tempfile.TemporaryDirectory(prefix='git-workflow-bootstrap-') as temp:

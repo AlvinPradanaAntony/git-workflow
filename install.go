@@ -23,6 +23,13 @@ type manifest struct {
 	Files         map[string]string `json:"files"`
 	Agents        []string          `json:"agents,omitempty"`
 	AgentVersions map[string]string `json:"agent_versions,omitempty"`
+	AgentsPointer *pointerMetadata  `json:"agents_pointer,omitempty"`
+}
+
+type pointerMetadata struct {
+	Padding     string `json:"padding"`
+	Newline     string `json:"newline"`
+	CreatedFile bool   `json:"created_file"`
 }
 
 type state struct {
@@ -146,6 +153,11 @@ func readManifest(root, rel string, global bool) (*manifest, error) {
 			return nil, fmt.Errorf("invalid manifest agent: %s", a)
 		}
 	}
+	if p := m.AgentsPointer; p != nil {
+		if global || (p.Newline != "\n" && p.Newline != "\r\n") || (p.Padding != "" && p.Padding != p.Newline+p.Newline) {
+			return nil, errors.New("invalid AGENTS.md pointer metadata")
+		}
+	}
 	return &m, nil
 }
 
@@ -194,6 +206,32 @@ func agentsContent(old []byte, remove, replace bool) ([]byte, error) {
 	}
 	result := []byte(text[:start] + block + text[finish:])
 	if remove && len(bytes.TrimSpace(result)) == 0 {
+		return nil, nil
+	}
+	return result, nil
+}
+
+func removeAgentsPointer(old []byte, replace bool, metadata *pointerMetadata) ([]byte, error) {
+	if metadata == nil {
+		return agentsContent(old, true, replace) // legacy manifests did not record padding
+	}
+	if _, err := agentsContent(old, false, replace); err != nil {
+		return nil, err
+	}
+	text := string(old)
+	start := strings.Index(text, begin)
+	if start < 0 {
+		return old, nil
+	}
+	finish := strings.Index(text, end) + len(end)
+	if strings.HasSuffix(text[:start], metadata.Padding) {
+		start -= len(metadata.Padding)
+	}
+	if strings.HasPrefix(text[finish:], metadata.Newline) {
+		finish += len(metadata.Newline)
+	}
+	result := []byte(text[:start] + text[finish:])
+	if metadata.CreatedFile && len(result) == 0 {
 		return nil, nil
 	}
 	return result, nil
@@ -282,6 +320,7 @@ func plan(root, manifestRel string, old *manifest, o options, agents []string) (
 	}
 	newManifest := manifest{Package: "git-workflow", Version: kit.Version, Files: map[string]string{}, Agents: agents, AgentVersions: map[string]string{}}
 	if old != nil {
+		newManifest.AgentsPointer = old.AgentsPointer
 		for rel, hash := range old.Files {
 			newManifest.Files[rel] = hash
 		}
@@ -336,7 +375,23 @@ func plan(root, manifestRel string, old *manifest, o options, agents []string) (
 		if err != nil {
 			return nil, err
 		}
-		after, err := agentsContent(before.data, o.Action == "uninstall", o.Replace)
+		var after []byte
+		if o.Action == "uninstall" {
+			after, err = removeAgentsPointer(before.data, o.Replace, newManifest.AgentsPointer)
+		} else {
+			after, err = agentsContent(before.data, false, o.Replace)
+			if !bytes.Contains(before.data, []byte(begin)) && !bytes.Contains(before.data, []byte(end)) {
+				newline := "\n"
+				if bytes.Contains(before.data, []byte("\r\n")) {
+					newline = "\r\n"
+				}
+				padding := ""
+				if len(before.data) > 0 && !bytes.HasSuffix(before.data, []byte(newline+newline)) {
+					padding = newline + newline
+				}
+				newManifest.AgentsPointer = &pointerMetadata{padding, newline, !before.exists}
+			}
+		}
 		if err != nil {
 			return nil, err
 		}

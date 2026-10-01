@@ -119,6 +119,9 @@ func TestProjectLifecycleAndPreservation(t *testing.T) {
 	if !strings.Contains(read(t, r, "AGENTS.md"), "Keep this content.") {
 		t.Fatal("AGENTS content lost on uninstall")
 	}
+	if read(t, r, "AGENTS.md") != "# Team rules\r\nKeep this content.\r\n" {
+		t.Fatal("uninstall did not restore original AGENTS bytes")
+	}
 	invoke(t, 0, "uninstall", "--project", r)
 	invoke(t, 2, "update", "--project", r)
 }
@@ -303,4 +306,16 @@ func TestUnrelatedMixedNewlinesAndMissingGitDoctor(t *testing.T) {
 		t.Fatal("missing Git was not reported")
 	}
 	read(t, home, ".agents/skills/git-workflow/SKILL.md")
+}
+
+func TestEmptyExistingAgentsFileIsPreserved(t *testing.T) {
+	isolatedHome(t)
+	r := repo(t)
+	write(t, r, "AGENTS.md", "")
+	invoke(t, 0, "init", "--project", r)
+	invoke(t, 0, "update", "--project", r)
+	invoke(t, 0, "uninstall", "--project", r)
+	if read(t, r, "AGENTS.md") != "" {
+		t.Fatal("pre-existing empty AGENTS.md changed")
+	}
 }

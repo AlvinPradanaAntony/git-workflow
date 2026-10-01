@@ -11,6 +11,22 @@ param(
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+function Get-GitWorkflowHash([string]$Path) {
+    $stream = [IO.File]::OpenRead($Path)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        return [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
+
+function Save-GitWorkflowDownload([string]$Uri, [string]$Path) {
+    $client = [Net.WebClient]::new()
+    try { $client.DownloadFile($Uri, $Path) } finally { $client.Dispose() }
+}
+
 if ($env:OS -ne 'Windows_NT') { throw 'Use install.sh on Linux/macOS.' }
 $cpu = $env:PROCESSOR_ARCHITEW6432
 if (-not $cpu) { $cpu = $env:PROCESSOR_ARCHITECTURE }
@@ -55,21 +71,21 @@ try {
         Copy-Item -LiteralPath (Join-Path $SourceDirectory $asset) -Destination $binary
         Copy-Item -LiteralPath (Join-Path $SourceDirectory 'SHA256SUMS') -Destination $sums
     } else {
-        Invoke-WebRequest -UseBasicParsing -Uri "$base/$asset" -OutFile $binary
-        Invoke-WebRequest -UseBasicParsing -Uri "$base/SHA256SUMS" -OutFile $sums
+        Save-GitWorkflowDownload "$base/$asset" $binary
+        Save-GitWorkflowDownload "$base/SHA256SUMS" $sums
     }
     $pattern = '^([0-9a-f]{64})\s+' + [Regex]::Escape($asset) + '$'
     $found = @(Get-Content -LiteralPath $sums | Where-Object { $_ -cmatch $pattern })
     if ($found.Count -ne 1) { throw "Missing/duplicate SHA256SUMS entry for $asset." }
     $expected = [Regex]::Match($found[0], $pattern).Groups[1].Value
-    $actual = (Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash.ToLowerInvariant()
+    $actual = Get-GitWorkflowHash $binary
     if ($expected -ne $actual) { throw 'Executable checksum mismatch; nothing installed.' }
 
     New-Item -ItemType Directory -Force -Path $BinDirectory | Out-Null
     $installNeeded = $true
     if (Test-Path -LiteralPath $destination) {
         if (-not (Test-Path -LiteralPath $destination -PathType Leaf)) { throw 'Destination is not a regular file.' }
-        $oldHash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()
+        $oldHash = Get-GitWorkflowHash $destination
         if ($oldHash -eq $expected) { $installNeeded = $false }
         if ($oldHash -ne $expected) {
             $recorded = ''

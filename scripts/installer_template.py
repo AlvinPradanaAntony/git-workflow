@@ -123,7 +123,16 @@ def owned_path(rel: str, global_install: bool) -> bool:
             or (len(parts) == 3 and parts[:2] in ((".agent", "workflows"), (".agents", "workflows"))
                 and parts[2].removesuffix(".md") in OLD_NAMES and parts[2].endswith(".md")))
 
-def remove_agents_block(old: bytes, replace: bool) -> Optional[bytes]:
+def validate_pointer(metadata, global_install: bool) -> None:
+    if metadata is None:
+        return
+    if (global_install or not isinstance(metadata, dict)
+            or metadata.get("newline") not in ("\n", "\r\n")
+            or metadata.get("padding") not in ("", metadata["newline"] * 2)
+            or not isinstance(metadata.get("created_file"), bool)):
+        raise ValueError("Invalid AGENTS.md pointer metadata")
+
+def remove_agents_block(old: bytes, replace: bool, metadata=None) -> Optional[bytes]:
     content = old.decode("utf-8")
     if BEGIN not in content and END not in content:
         return old
@@ -134,6 +143,15 @@ def remove_agents_block(old: bytes, replace: bool) -> Optional[bytes]:
     known = (AGENTS_BLOCK, OLD_AGENTS_BLOCK, PREVIOUS_AGENTS_BLOCK)
     if content[start:finish] not in tuple(block.replace("\n", newline) for block in known) and not replace:
         raise ValueError("The managed AGENTS.md block differs; review it or use --replace with a backup")
+    if metadata is not None:
+        if content[:start].endswith(metadata["padding"]):
+            start -= len(metadata["padding"])
+        if content[finish:].startswith(metadata["newline"]):
+            finish += len(metadata["newline"])
+        remaining = content[:start] + content[finish:]
+        if metadata["created_file"] and not remaining:
+            return None
+        return remaining.encode("utf-8")
     remaining = content[:start] + content[finish:]
     return remaining.encode("utf-8") if remaining.strip() else None
 
@@ -146,6 +164,7 @@ def uninstall(root: Path, manifest_rel: str, global_install: bool, apply: bool, 
     manifest = json.loads(manifest_bytes)
     if manifest.get("package") != "git-workflow" or not isinstance(manifest.get("files"), dict):
         raise ValueError("Unrecognized installer manifest; review before uninstalling")
+    validate_pointer(manifest.get("agents_pointer"), global_install)
     plans, conflicts = [], []
     for rel, expected_hash in manifest["files"].items():
         if (not isinstance(rel, str) or not owned_path(rel, global_install) or
@@ -163,7 +182,7 @@ def uninstall(root: Path, manifest_rel: str, global_install: bool, apply: bool, 
         agents_path = check_path(root, "AGENTS.md")
         if agents_path.exists():
             old = agents_path.read_bytes()
-            new = remove_agents_block(old, replace)
+            new = remove_agents_block(old, replace, manifest.get("agents_pointer"))
             if new != old:
                 plans.append(("AGENTS.md", agents_path, old, new))
     if conflicts:
@@ -268,7 +287,8 @@ def main(argv=None) -> int:
         manifest_rel = ".agents/git-workflow-install.json"
     if not args.global_install:
         agent_path = check_path(root, "AGENTS.md")
-        desired["AGENTS.md"] = update_agents(agent_path.read_bytes() if agent_path.exists() else b"", args.replace)
+        agent_old = agent_path.read_bytes() if agent_path.exists() else b""
+        desired["AGENTS.md"] = update_agents(agent_old, args.replace)
     manifest_path = check_path(root, manifest_rel)
     old_manifest = None
     if manifest_path.exists():
@@ -283,8 +303,17 @@ def main(argv=None) -> int:
         for rel, file_hash in old_manifest["files"].items():
             if not owned_path(rel, args.global_install) or not isinstance(file_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", file_hash):
                 raise ValueError("Unsafe old manifest entry: " + str(rel))
+        validate_pointer(old_manifest.get("agents_pointer"), args.global_install)
     old_hashes = (old_manifest or {}).get("files",{})
     manifest = {"package": "git-workflow", "version": VERSION, "files": {key: digest(val) for key,val in desired.items() if key != "AGENTS.md"}}
+    if not args.global_install:
+        pointer = (old_manifest or {}).get("agents_pointer")
+        if BEGIN.encode() not in agent_old and END.encode() not in agent_old:
+            newline = "\r\n" if b"\r\n" in agent_old else "\n"
+            padding = newline * 2 if agent_old and not agent_old.endswith((newline * 2).encode()) else ""
+            pointer = {"padding": padding, "newline": newline, "created_file": not agent_path.exists()}
+        if pointer is not None:
+            manifest["agents_pointer"] = pointer
     desired[manifest_rel] = (json.dumps(manifest,indent=2) + "\n").encode("utf-8")
     changes, removals, conflicts = [], [], []
     for rel, data in desired.items():

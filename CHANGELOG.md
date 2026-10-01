@@ -13,6 +13,7 @@
 - Root proyek ditemukan dari folder terminal, termasuk subfolder dan linked worktree; installer tidak perlu dipindahkan ke repo.
 - CLI dan installer Python menggunakan sumber skill yang sama. `update` memperbarui skill dari executable saat ini; pembaruan CLI dilakukan melalui bootstrap.
 - Manifest pemasangan lama dapat dimigrasikan. File pengguna dan isi AGENTS.md di luar blok terkelola dipertahankan; penggantian file yang diedit memerlukan `--replace` dan backup.
+- Pemasangan baru mencatat separator pointer AGENTS.md agar uninstall mengembalikan byte asli, termasuk file yang sebelumnya kosong, tanpa menghapus aturan pengguna yang ditambahkan kemudian.
 
 ## [2.12.3] - 2026-09-30
 
