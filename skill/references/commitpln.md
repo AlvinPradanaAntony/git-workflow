@@ -1,0 +1,6 @@
+# commitpln
+
+Read `references/common.md` before acting. Follow the user's explicit scope and this command's mutation boundary.
+
+Read `references/messages.md`. Accept its message options plus `--source auto|staged|unstaged|all|description`, `--files <paths...>` and `--all` (alias source all). Source auto: staged if nonempty, else relevant working changes. Source unstaged includes eligible untracked files, but never treats already-staged content as part of that preview. Source all describes the selected working-tree result relative to HEAD; clearly warn if it differs from partial staging. Description input is an explicitly labeled draft, not verified code evidence.
+Analyze full changes and group by coherent purpose. Present ordered groups with exact paths/hunks and one proposed message each. For one coherent change show one message. Preserve partial staging, propose hunk separation for mixed files, and do not run staging, stashing or mutating checks. If no diff and no description, report no changes. If conflicts exist, describe the blocker and don't claim a commit-ready result. `/commitplan` is a conversational alias; native UI alias availability depends on platform. For guaranteed Codex invocation use `$commitpln`.

@@ -1,0 +1,13 @@
+interface:
+  display_name: Git Workflow
+  short_description: Workflow Git bilingual untuk Codex dan Antigravity
+  default_prompt: Gunakan $git-workflow untuk memilih command Git yang sesuai.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
